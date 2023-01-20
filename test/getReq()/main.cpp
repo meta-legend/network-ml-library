@@ -4,6 +4,10 @@
 using namespace std;
 
 int main() {
-	getReq("https://www.google.com");
-	return 0;
+	string url;
+	cout << "Enter your file url: ";
+	cin >> url;
+	cout << getReq(url) << endl;
+	cin.get();
+	cin.get();
 }
