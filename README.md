@@ -11,7 +11,7 @@ ML::Response r = req.get("https://api.example.com/data");
 if (r.ok()) std::cout << r.status << "\n" << r.body;
 
 // Talk to a local LLM
-ML::Chat chat("llama3.2:1b");
+ML::Chat chat(ML::Provider::Ollama, "llama3.2:1b");
 std::cout << chat.ask("Explain RAII in one sentence.");
 ```
 
@@ -66,7 +66,7 @@ int main() {
     Response r = req.get("https://catfact.ninja/fact");
     std::cout << "status " << r.status << ": " << r.body << "\n";
 
-    Chat chat("llama3.2:1b");
+    Chat chat(Provider::Ollama, "llama3.2:1b");
     chat.setSystem("You are a terse assistant.");
 
     // Streaming: tokens print as they are generated
@@ -81,17 +81,17 @@ The same `Chat` class targets several backends. Switch by choosing a constructor
 
 ```cpp
 // Ollama (local, no API key)
-Chat ollama("llama3.2:1b");
+Chat ollama(Provider::Ollama, "llama3.2:1b");
 
 // Groq (free tier, fast)
-Chat groq(Provider::Groq, std::getenv("GROQ_API_KEY"), "llama-3.1-8b-instant");
+Chat groq(Provider::Groq, "llama-3.1-8b-instant", std::getenv("GROQ_API_KEY"));
 
 // OpenAI
-Chat gpt(Provider::OpenAI, std::getenv("OPENAI_API_KEY"), "gpt-4o-mini");
+Chat gpt(Provider::OpenAI, "gpt-4o-mini", std::getenv("OPENAI_API_KEY"));
 
 // Anthropic (max_tokens is required)
-Chat claude(Provider::Anthropic, std::getenv("ANTHROPIC_API_KEY"),
-            "claude-3-5-haiku-latest");
+Chat claude(Provider::Anthropic, "claude-3-5-haiku-latest",
+            std::getenv("ANTHROPIC_API_KEY"));
 claude.setMaxTokens(1024);
 ```
 
@@ -107,8 +107,8 @@ OpenAI-compatible service (OpenRouter, Together, etc.), use `Provider::OpenAI`
 with a custom host:
 
 ```cpp
-Chat router(Provider::OpenAI, std::getenv("OPENROUTER_API_KEY"),
-            "meta-llama/llama-3.1-8b-instruct:free",
+Chat router(Provider::OpenAI, "meta-llama/llama-3.1-8b-instruct:free",
+            std::getenv("OPENROUTER_API_KEY"),
             "https://openrouter.ai/api");
 ```
 

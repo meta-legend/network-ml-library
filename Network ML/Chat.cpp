@@ -145,17 +145,7 @@ namespace ML {
 
     // --- Chat ----------------------------------------------------------------
 
-    Chat::Chat(std::string model, std::string host)
-        : provider(Provider::Ollama), apiKey(), model(model), host(host),
-        temperature(0.8), maxTokens(1024) {
-    }
-
-    // Null-safe overload: a missing env var (null) becomes an empty key.
-    Chat::Chat(Provider provider, const char* apiKey, std::string model, std::string host)
-        : Chat(provider, apiKey ? std::string(apiKey) : std::string(), model, host) {
-    }
-
-    Chat::Chat(Provider provider, std::string apiKey, std::string model, std::string host)
+    Chat::Chat(Provider provider, std::string model, std::string apiKey, std::string host)
         : provider(provider), apiKey(apiKey), model(model), host(host),
         temperature(0.8), maxTokens(1024) {
         if (this->host.empty()) {
@@ -167,6 +157,11 @@ namespace ML {
             default:                  this->host = "http://localhost:11434"; break;
             }
         }
+    }
+
+    // Null-safe overload: a missing env var (null) becomes an empty key.
+    Chat::Chat(Provider provider, std::string model, const char* apiKey, std::string host)
+        : Chat(provider, model, apiKey ? std::string(apiKey) : std::string(), host) {
     }
 
     void Chat::setSystem(std::string instruction) {

@@ -55,19 +55,17 @@ namespace ML {
 	// Holds a running message history so the model remembers context across calls.
 	class Chat {
 	public:
-		// Local Ollama (no API key needed).
-		Chat(std::string model = "llama3.2:1b",
-			std::string host = "http://localhost:11434");
-
-		// Cloud provider (OpenAI / Anthropic / Groq) with an API key. Leave host
-		// empty to use the provider's default endpoint.
-		Chat(Provider provider, std::string apiKey, std::string model,
+		// Construct for any provider. The provider is always explicit; the API
+		// key is only used by cloud providers (Ollama and other local backends
+		// ignore it). Leave host empty to use the provider's default endpoint
+		// (http://localhost:11434 for Ollama).
+		Chat(Provider provider, std::string model, std::string apiKey = "",
 			std::string host = "");
 
-		// Convenience overload accepting a C-string key (e.g. straight from
-		// std::getenv), which may be null. A null key is treated as empty so a
-		// missing environment variable does not crash the caller.
-		Chat(Provider provider, const char* apiKey, std::string model,
+		// Null-safe overload: apiKey may come straight from std::getenv and be
+		// null; a null key is treated as empty so a missing environment variable
+		// does not crash the caller.
+		Chat(Provider provider, std::string model, const char* apiKey,
 			std::string host = "");
 
 		// Set a persistent system instruction (model behaviour/persona).
