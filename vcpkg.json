@@ -1,0 +1,9 @@
+{
+  "name": "network-ml",
+  "version-string": "1.6.0",
+  "description": "A simple C++ library for REST API requests and local LLM (Ollama) chat, built on libcurl.",
+  "homepage": "https://github.com/meta-legend/Network-ML-Library",
+  "dependencies": [
+    "curl"
+  ]
+}
