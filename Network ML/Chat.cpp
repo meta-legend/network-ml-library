@@ -39,17 +39,29 @@ namespace ML {
         return h;
     }
 
-    // Extracts the assistant reply from a non-streaming response body.
-    static std::string parseReply(Provider p, const std::string& bodyText) {
+    // Extracts the assistant answer (returned) and the reasoning/"thinking"
+    // (via reasoningOut) from a non-streaming response body.
+    static std::string parseReply(Provider p, const std::string& bodyText,
+        std::string& reasoningOut) {
+        reasoningOut.clear();
         try {
             json res = json::parse(bodyText);
             if (usesOpenAIFormat(p)) {
-                return res.at("choices").at(0).at("message").at("content").get<std::string>();
+                auto& msg = res.at("choices").at(0).at("message");
+                if (msg.contains("reasoning") && !msg["reasoning"].is_null())
+                    reasoningOut = msg["reasoning"].get<std::string>();
+                else if (msg.contains("reasoning_content") && !msg["reasoning_content"].is_null())
+                    reasoningOut = msg["reasoning_content"].get<std::string>();
+                return msg.at("content").get<std::string>();
             }
             if (p == Provider::Anthropic) {
                 return res.at("content").at(0).at("text").get<std::string>();
             }
-            return res.at("message").at("content").get<std::string>(); // Ollama
+            // Ollama
+            auto& msg = res.at("message");
+            if (msg.contains("thinking") && !msg["thinking"].is_null())
+                reasoningOut = msg["thinking"].get<std::string>();
+            return msg.at("content").get<std::string>();
         }
         catch (const json::exception&) {
             return "";
@@ -78,8 +90,10 @@ namespace ML {
     struct StreamCtx {
         Provider provider;
         std::function<void(const std::string&)>* onToken;
+        std::function<void(const std::string&)>* onReasoning;  // may be empty
         std::string lineBuf;   // an as-yet-incomplete line
-        std::string full;      // the assembled reply
+        std::string full;      // the assembled answer
+        std::string reasoning; // the assembled reasoning/"thinking"
     };
 
     // Parses one complete line and fires the callback if it carries a token.
@@ -96,7 +110,8 @@ namespace ML {
 
         try {
             json j = json::parse(line);
-            std::string tok;
+            std::string tok;    // answer content
+            std::string rtok;   // reasoning / "thinking"
 
             if (usesOpenAIFormat(ctx->provider)) {
                 auto& choices = j["choices"];
@@ -104,6 +119,11 @@ namespace ML {
                     auto& delta = choices[0]["delta"];
                     if (delta.contains("content") && !delta["content"].is_null())
                         tok = delta["content"].get<std::string>();
+                    // gpt-oss/OpenRouter use "reasoning"; DeepSeek "reasoning_content"
+                    if (delta.contains("reasoning") && !delta["reasoning"].is_null())
+                        rtok = delta["reasoning"].get<std::string>();
+                    else if (delta.contains("reasoning_content") && !delta["reasoning_content"].is_null())
+                        rtok = delta["reasoning_content"].get<std::string>();
                 }
             }
             else if (ctx->provider == Provider::Anthropic) {
@@ -111,16 +131,28 @@ namespace ML {
                     auto& delta = j["delta"];
                     if (delta.contains("text"))
                         tok = delta["text"].get<std::string>();
+                    else if (delta.contains("thinking"))   // extended thinking
+                        rtok = delta["thinking"].get<std::string>();
                 }
             }
             else { // Ollama
-                if (j.contains("message") && j["message"].contains("content"))
-                    tok = j["message"]["content"].get<std::string>();
+                if (j.contains("message")) {
+                    auto& msg = j["message"];
+                    if (msg.contains("content"))
+                        tok = msg["content"].get<std::string>();
+                    if (msg.contains("thinking") && !msg["thinking"].is_null())
+                        rtok = msg["thinking"].get<std::string>();
+                }
             }
 
             if (!tok.empty()) {
                 (*ctx->onToken)(tok);
                 ctx->full += tok;
+            }
+            if (!rtok.empty()) {
+                ctx->reasoning += rtok;
+                if (ctx->onReasoning && *ctx->onReasoning)
+                    (*ctx->onReasoning)(rtok);
             }
         }
         catch (const json::exception&) {
@@ -267,10 +299,11 @@ namespace ML {
     }
 
     std::string Chat::ask(std::string prompt) {
+        reasoningText.clear();
         Response r = raw(prompt);
         if (!r.ok()) return "";
 
-        std::string reply = parseReply(provider, r.body);
+        std::string reply = parseReply(provider, r.body, reasoningText);
         if (!reply.empty()) {
             messages.push_back(Message{ "user", prompt });
             messages.push_back(Message{ "assistant", reply });
@@ -278,7 +311,15 @@ namespace ML {
         return reply;
     }
 
-    long Chat::stream(std::string prompt, std::function<void(const std::string&)> onToken) {
+    const std::string& Chat::lastReasoning() const {
+        return reasoningText;
+    }
+
+    long Chat::stream(std::string prompt,
+        std::function<void(const std::string&)> onToken,
+        std::function<void(const std::string&)> onReasoning) {
+        reasoningText.clear();
+
         CURL* curl = curl_easy_init();
         if (!curl) return 0;
 
@@ -288,6 +329,7 @@ namespace ML {
         StreamCtx ctx;
         ctx.provider = provider;
         ctx.onToken = &onToken;
+        ctx.onReasoning = &onReasoning;
 
         curl_slist* headers = providerHeaders(provider, apiKey);
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -307,6 +349,7 @@ namespace ML {
 
         // Only record the exchange if the request actually succeeded (2xx).
         if (status >= 200 && status < 300) {
+            reasoningText = ctx.reasoning;
             messages.push_back(Message{ "user", prompt });
             messages.push_back(Message{ "assistant", ctx.full });
         }

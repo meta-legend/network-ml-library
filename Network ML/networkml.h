@@ -87,10 +87,21 @@ namespace ML {
 		Response raw(std::string prompt);
 
 		// Streams the reply token-by-token as it is generated. onToken is called
-		// repeatedly with each chunk of text. On a 2xx response the exchange is
-		// appended to history (same as ask()). Returns the HTTP status code
-		// (200 on success; 0 if the request could not be sent at all).
-		long stream(std::string prompt, std::function<void(const std::string&)> onToken);
+		// repeatedly with each chunk of answer text. On a 2xx response the
+		// exchange is appended to history (same as ask()). Returns the HTTP
+		// status code (200 on success; 0 if the request could not be sent).
+		//
+		// onReasoning is optional: for reasoning models (e.g. gpt-oss,
+		// deepseek-r1) it receives the model's "thinking" chunks as they stream,
+		// separate from the answer. Leave it unset to ignore reasoning.
+		long stream(std::string prompt,
+			std::function<void(const std::string&)> onToken,
+			std::function<void(const std::string&)> onReasoning = {});
+
+		// The reasoning/"thinking" text from the most recent ask() or stream()
+		// (empty for non-reasoning models). The answer itself is returned by
+		// ask() / delivered to onToken.
+		const std::string& lastReasoning() const;
 
 		// Clears conversation history (keeps the system instruction, if any).
 		void reset();
@@ -109,5 +120,6 @@ namespace ML {
 		std::vector<Message> messages;
 		double temperature;
 		int maxTokens;
+		std::string reasoningText;
 	};
 }

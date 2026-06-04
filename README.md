@@ -19,11 +19,13 @@ std::cout << chat.ask("Explain RAII in one sentence.");
 
 - **`ML::Requests`**: `GET`/`POST`/`PUT`/`DELETE`/`HEAD` plus a modern `get()` returning a rich `Response` (status code + body).
 - **`ML::Response`**: `status`, `body`, and `ok()` (true for any 2xx).
-- **`ML::Chat`**: conversational client for **Ollama** (local), **OpenAI**, or **Anthropic**:
-  - one API across all three providers
+- **`ML::Chat`**: conversational client for **Ollama** (local), **Groq**, **OpenRouter**, **OpenAI**, or **Anthropic**:
+  - one API across every provider
   - persistent **system prompt** and **conversation memory**
   - adjustable **temperature** and **max tokens**
   - **token streaming** via a callback
+  - **reasoning-token** support for reasoning models (the model's "thinking"
+    streams to a separate callback, available via `lastReasoning()`)
 - **`ML::File`**: cross-platform file/folder helpers (`std::filesystem`).
 - All HTTP runs **in-process via libcurl** (HTTPS through Schannel on Windows), with no `curl` subprocess and no temp files.
 
