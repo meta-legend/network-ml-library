@@ -278,9 +278,9 @@ namespace ML {
         return reply;
     }
 
-    void Chat::stream(std::string prompt, std::function<void(const std::string&)> onToken) {
+    long Chat::stream(std::string prompt, std::function<void(const std::string&)> onToken) {
         CURL* curl = curl_easy_init();
-        if (!curl) return;
+        if (!curl) return 0;
 
         std::string url = endpoint();
         std::string body = buildBody(prompt, true);
@@ -297,13 +297,19 @@ namespace ML {
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, streamWrite);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ctx);
 
+        long status = 0;
         CURLcode res = curl_easy_perform(curl);
+        if (res == CURLE_OK) {
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
+        }
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
-        if (res == CURLE_OK) {
+        // Only record the exchange if the request actually succeeded (2xx).
+        if (status >= 200 && status < 300) {
             messages.push_back(Message{ "user", prompt });
             messages.push_back(Message{ "assistant", ctx.full });
         }
+        return status;
     }
 }

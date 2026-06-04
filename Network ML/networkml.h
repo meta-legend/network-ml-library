@@ -87,9 +87,10 @@ namespace ML {
 		Response raw(std::string prompt);
 
 		// Streams the reply token-by-token as it is generated. onToken is called
-		// repeatedly with each chunk of text. On success the exchange is appended
-		// to history (same as ask()).
-		void stream(std::string prompt, std::function<void(const std::string&)> onToken);
+		// repeatedly with each chunk of text. On a 2xx response the exchange is
+		// appended to history (same as ask()). Returns the HTTP status code
+		// (200 on success; 0 if the request could not be sent at all).
+		long stream(std::string prompt, std::function<void(const std::string&)> onToken);
 
 		// Clears conversation history (keeps the system instruction, if any).
 		void reset();
