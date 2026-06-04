@@ -46,7 +46,9 @@ namespace ML {
 	};
 
 	// LLM backends supported by Chat.
-	enum class Provider { Ollama, OpenAI, Anthropic };
+	// (Groq uses the same wire format as OpenAI internally, but is a distinct
+	// choice so callers don't have to know that or set a custom host.)
+	enum class Provider { Ollama, OpenAI, Anthropic, Groq };
 
 	// Conversational LLM client. Talks to a local Ollama server by default, or
 	// to OpenAI / Anthropic when constructed with a Provider and an API key.
@@ -57,8 +59,8 @@ namespace ML {
 		Chat(std::string model = "llama3.2:1b",
 			std::string host = "http://localhost:11434");
 
-		// Cloud provider (OpenAI / Anthropic) with an API key. Leave host empty
-		// to use the provider's default endpoint.
+		// Cloud provider (OpenAI / Anthropic / Groq) with an API key. Leave host
+		// empty to use the provider's default endpoint.
 		Chat(Provider provider, std::string apiKey, std::string model,
 			std::string host = "");
 

@@ -18,10 +18,16 @@ namespace ML {
         return n;
     }
 
+    // OpenAI and OpenAI-compatible providers (Groq) share the same wire format:
+    // same endpoint path, Bearer auth, request body, response shape, and SSE.
+    static bool usesOpenAIFormat(Provider p) {
+        return p == Provider::OpenAI || p == Provider::Groq;
+    }
+
     // Builds the HTTP headers for a provider (Content-Type + auth).
     static curl_slist* providerHeaders(Provider p, const std::string& apiKey) {
         curl_slist* h = curl_slist_append(nullptr, "Content-Type: application/json");
-        if (p == Provider::OpenAI) {
+        if (usesOpenAIFormat(p)) {
             std::string auth = "Authorization: Bearer " + apiKey;
             h = curl_slist_append(h, auth.c_str());
         }
@@ -37,7 +43,7 @@ namespace ML {
     static std::string parseReply(Provider p, const std::string& bodyText) {
         try {
             json res = json::parse(bodyText);
-            if (p == Provider::OpenAI) {
+            if (usesOpenAIFormat(p)) {
                 return res.at("choices").at(0).at("message").at("content").get<std::string>();
             }
             if (p == Provider::Anthropic) {
@@ -92,7 +98,7 @@ namespace ML {
             json j = json::parse(line);
             std::string tok;
 
-            if (ctx->provider == Provider::OpenAI) {
+            if (usesOpenAIFormat(ctx->provider)) {
                 auto& choices = j["choices"];
                 if (choices.is_array() && !choices.empty()) {
                     auto& delta = choices[0]["delta"];
@@ -151,6 +157,7 @@ namespace ML {
             switch (provider) {
             case Provider::OpenAI:    this->host = "https://api.openai.com"; break;
             case Provider::Anthropic: this->host = "https://api.anthropic.com"; break;
+            case Provider::Groq:      this->host = "https://api.groq.com/openai"; break;
             case Provider::Ollama:
             default:                  this->host = "http://localhost:11434"; break;
             }
@@ -184,7 +191,8 @@ namespace ML {
 
     std::string Chat::endpoint() const {
         switch (provider) {
-        case Provider::OpenAI:    return host + "/v1/chat/completions";
+        case Provider::OpenAI:
+        case Provider::Groq:      return host + "/v1/chat/completions";
         case Provider::Anthropic: return host + "/v1/messages";
         case Provider::Ollama:
         default:                  return host + "/api/chat";
@@ -221,7 +229,7 @@ namespace ML {
             msgs.push_back({ {"role", "user"}, {"content", prompt} });
             body["messages"] = msgs;
 
-            if (provider == Provider::OpenAI) {
+            if (usesOpenAIFormat(provider)) {
                 body["temperature"] = temperature;
                 if (maxTokens > 0) body["max_tokens"] = maxTokens;
             }

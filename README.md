@@ -77,11 +77,14 @@ int main() {
 
 ## Chat providers
 
-The same `Chat` class targets three backends. Switch by choosing a constructor:
+The same `Chat` class targets several backends. Switch by choosing a constructor:
 
 ```cpp
 // Ollama (local, no API key)
 Chat ollama("llama3.2:1b");
+
+// Groq (free tier, fast)
+Chat groq(Provider::Groq, std::getenv("GROQ_API_KEY"), "llama-3.1-8b-instant");
 
 // OpenAI
 Chat gpt(Provider::OpenAI, std::getenv("OPENAI_API_KEY"), "gpt-4o-mini");
@@ -97,20 +100,20 @@ regardless of provider. The library handles each provider's endpoint, auth
 headers, request shape, and streaming format (NDJSON for Ollama, SSE for
 OpenAI/Anthropic) internally.
 
-### OpenAI-compatible providers
+### Other OpenAI-compatible providers
 
-Because `Provider::OpenAI` speaks the standard OpenAI chat format, you can point
-it at any OpenAI-compatible endpoint by passing a custom host. For example,
-[Groq](https://console.groq.com) (free tier, fast):
+[Groq](https://console.groq.com) is built in as `Provider::Groq`. For any *other*
+OpenAI-compatible service (OpenRouter, Together, etc.), use `Provider::OpenAI`
+with a custom host:
 
 ```cpp
-Chat groq(Provider::OpenAI, std::getenv("GROQ_API_KEY"),
-          "llama-3.1-8b-instant",
-          "https://api.groq.com/openai");
+Chat router(Provider::OpenAI, std::getenv("OPENROUTER_API_KEY"),
+            "meta-llama/llama-3.1-8b-instruct:free",
+            "https://openrouter.ai/api");
 ```
 
-The same approach works for other OpenAI-compatible services (e.g. OpenRouter,
-Together) by swapping the host and model.
+`Provider::OpenAI` speaks the standard OpenAI chat format, so any endpoint that
+implements it works by swapping the host and model.
 
 ## License
 
