@@ -22,11 +22,32 @@ namespace ML {
 
 	class File {
 	public:
-		void createFolder(std::string name);
-		void createFile(std::string name, std::string content);
-		std::string readFile(std::string name);
+		// --- create / write ---
+		void createFolder(std::string name);                       // single level
+		void createFolders(std::string path);                      // recursive (mkdir -p)
+		void createFile(std::string name, std::string content);    // create / overwrite
+		void appendFile(std::string name, std::string content);    // append to the end
+		void writeBytes(std::string name, const std::vector<unsigned char>& data);
+
+		// --- read ---
+		std::string readFile(std::string name);                    // text, line-based
+		std::string readAll(std::string name);                     // exact bytes (binary-safe)
+		std::vector<unsigned char> readBytes(std::string name);    // raw bytes
+
+		// --- delete / copy / move ---
 		void deleteFile(std::string name);
+		void deleteFolder(std::string name);                       // recursive
+		void copyFile(std::string src, std::string dst);           // overwrites dst
+		void moveFile(std::string src, std::string dst);           // rename / move
+
+		// --- listing & queries ---
+		std::vector<std::string> listFiles(std::string folder);
+		bool exists(std::string name);
+		bool isFile(std::string name);
+		bool isDirectory(std::string name);
 		int fileCharacterCount(std::string name);
+		long fileSize(std::string name);                           // bytes, -1 if missing
+		long long lastModified(std::string name);                  // unix seconds, -1 if missing
 	};
 
 	class Requests {
@@ -109,6 +130,12 @@ namespace ML {
 
 		// Read-only access to the current conversation.
 		const std::vector<Message>& history() const;
+
+		// Persist the conversation (including the system prompt) to a JSON file
+		// and load it back, so a chat can survive across runs. Both return false
+		// on I/O or parse failure.
+		bool saveHistory(const std::string& path) const;
+		bool loadHistory(const std::string& path);
 
 	private:
 		std::string endpoint() const;

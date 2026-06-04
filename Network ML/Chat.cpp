@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <functional>
@@ -223,6 +224,37 @@ namespace ML {
     }
 
     const std::vector<Message>& Chat::history() const { return messages; }
+
+    bool Chat::saveHistory(const std::string& path) const {
+        json arr = json::array();
+        for (const auto& m : messages) {
+            arr.push_back({ {"role", m.role}, {"content", m.content} });
+        }
+        std::ofstream out(path, std::ios::binary);
+        if (!out.is_open()) return false;
+        out << arr.dump(2);
+        return true;
+    }
+
+    bool Chat::loadHistory(const std::string& path) {
+        std::ifstream in(path, std::ios::binary);
+        if (!in.is_open()) return false;
+        try {
+            json arr;
+            in >> arr;
+            std::vector<Message> loaded;
+            for (const auto& m : arr) {
+                loaded.push_back(Message{
+                    m.at("role").get<std::string>(),
+                    m.at("content").get<std::string>() });
+            }
+            messages = std::move(loaded);
+            return true;
+        }
+        catch (const json::exception&) {
+            return false;   // malformed file; leave existing history untouched
+        }
+    }
 
     std::string Chat::endpoint() const {
         switch (provider) {
