@@ -86,6 +86,10 @@ Chat ollama(Provider::Ollama, "llama3.2:1b");
 // Groq (free tier, fast)
 Chat groq(Provider::Groq, "llama-3.1-8b-instant", std::getenv("GROQ_API_KEY"));
 
+// OpenRouter (many models, some free)
+Chat router(Provider::OpenRouter, "meta-llama/llama-3.1-8b-instruct:free",
+            std::getenv("OPENROUTER_API_KEY"));
+
 // OpenAI
 Chat gpt(Provider::OpenAI, "gpt-4o-mini", std::getenv("OPENAI_API_KEY"));
 
@@ -102,14 +106,14 @@ OpenAI/Anthropic) internally.
 
 ### Other OpenAI-compatible providers
 
-[Groq](https://console.groq.com) is built in as `Provider::Groq`. For any *other*
-OpenAI-compatible service (OpenRouter, Together, etc.), use `Provider::OpenAI`
-with a custom host:
+[Groq](https://console.groq.com) and [OpenRouter](https://openrouter.ai) are built
+in as `Provider::Groq` and `Provider::OpenRouter`. For any *other* OpenAI-compatible
+service (e.g. Together), use `Provider::OpenAI` with a custom host:
 
 ```cpp
-Chat router(Provider::OpenAI, "meta-llama/llama-3.1-8b-instruct:free",
-            std::getenv("OPENROUTER_API_KEY"),
-            "https://openrouter.ai/api");
+Chat together(Provider::OpenAI, "meta-llama/Llama-3-8b-chat-hf",
+              std::getenv("TOGETHER_API_KEY"),
+              "https://api.together.xyz");
 ```
 
 `Provider::OpenAI` speaks the standard OpenAI chat format, so any endpoint that

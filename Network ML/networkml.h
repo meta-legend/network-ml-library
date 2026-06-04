@@ -46,9 +46,9 @@ namespace ML {
 	};
 
 	// LLM backends supported by Chat.
-	// (Groq uses the same wire format as OpenAI internally, but is a distinct
-	// choice so callers don't have to know that or set a custom host.)
-	enum class Provider { Ollama, OpenAI, Anthropic, Groq };
+	// (Groq and OpenRouter use the same wire format as OpenAI internally, but are
+	// distinct choices so callers don't have to know that or set a custom host.)
+	enum class Provider { Ollama, OpenAI, Anthropic, Groq, OpenRouter };
 
 	// Conversational LLM client. Talks to a local Ollama server by default, or
 	// to OpenAI / Anthropic when constructed with a Provider and an API key.
