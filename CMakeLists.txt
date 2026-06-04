@@ -24,21 +24,23 @@ add_library(networkml STATIC
 )
 
 # 5. Include directories.
-#    PUBLIC  = applies to this library AND anything that links it (consumers
-#              need to find networkml.h, so it's PUBLIC).
-#    PRIVATE = only needed to BUILD this library (json.hpp is an internal
-#              implementation detail, so consumers never see it).
+#    PUBLIC = applies to this library AND anything that links it (consumers
+#             need to find networkml.h, so it's PUBLIC).
 target_include_directories(networkml
-    PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}/Network ML"
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Network ML/third_party"
+    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Network ML"
 )
 
-# 6. Dependencies. find_package locates libcurl (installed via vcpkg or the
-#    system). Linking it PUBLIC means consumers automatically get it too —
-#    CMake propagates the include paths and link flags for you. This is the
-#    "static link libcurl in" behaviour, handled automatically.
+# 6. Dependencies, both provided by vcpkg (see vcpkg.json).
+#    - libcurl is PUBLIC: consumers link a static lib that references curl
+#      symbols, so the dependency must propagate to them.
+#    - nlohmann_json is PRIVATE: it's a header-only implementation detail used
+#      only inside Chat.cpp; consumers never see it.
 find_package(CURL REQUIRED)
-target_link_libraries(networkml PUBLIC CURL::libcurl)
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(networkml
+    PUBLIC  CURL::libcurl
+    PRIVATE nlohmann_json::nlohmann_json
+)
 
 # ── How to build with this file ──────────────────────────────────────────────
 #
