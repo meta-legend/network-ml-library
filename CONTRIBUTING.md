@@ -6,11 +6,11 @@ and submit them.
 
 ## Ways to contribute
 
-- **Report bugs** — open an issue with steps to reproduce, your OS/compiler, and
+- **Report bugs**: open an issue with steps to reproduce, your OS/compiler, and
   what you expected vs. what happened.
-- **Suggest features** — open an issue describing the use case.
-- **Submit code** — fix a bug or add a feature via a pull request (see below).
-- **Improve docs** — corrections and clarifications to the README or this file
+- **Suggest features**: open an issue describing the use case.
+- **Submit code**: fix a bug or add a feature via a pull request (see below).
+- **Improve docs**: corrections and clarifications to the README or this file
   are very welcome.
 
 ## Prerequisites
@@ -48,9 +48,9 @@ Network ML/
   File.cpp            Cross-platform file/folder helpers
 ```
 
-Note: the `.sln`/`.vcxproj` files are intentionally **not** committed — CMake is
+Note: the `.sln`/`.vcxproj` files are intentionally **not** committed; CMake is
 the canonical build. You can still develop in Visual Studio via
-**File → Open → Folder** (VS understands CMake projects natively).
+**File > Open > Folder** (VS understands CMake projects natively).
 
 ## Making changes
 
@@ -59,7 +59,7 @@ the canonical build. You can still develop in Visual Studio via
    it, update the README usage examples to match.
 3. Build and exercise your change before submitting (a small `main()` that calls
    the affected functions is the simplest way to verify behaviour).
-4. Keep dependencies minimal — prefer the standard library and the two existing
+4. Keep dependencies minimal: prefer the standard library and the two existing
    dependencies over pulling in new ones.
 
 ## Coding conventions
@@ -71,7 +71,7 @@ Match the existing style so the codebase stays consistent:
 - Functions/methods and variables: `camelCase` (`getReq`, `setSystem`).
 - Use libcurl for HTTP (no shelling out to external processes) and
   `nlohmann/json` for JSON.
-- Prefer `std::filesystem` and other standard facilities for portability —
+- Prefer `std::filesystem` and other standard facilities for portability;
   avoid platform-specific APIs unless guarded by an `#ifdef`.
 - 4-space indentation, braces on the same line.
 
@@ -82,7 +82,7 @@ Match the existing style so the codebase stays consistent:
    - a clear description of **what** changed and **why**,
    - any new behaviour or API changes called out,
    - confirmation that it builds (and how you tested it).
-3. Keep PRs focused — one logical change per PR is easier to review.
+3. Keep PRs focused: one logical change per PR is easier to review.
 
 ## License
 

@@ -17,14 +17,14 @@ std::cout << chat.ask("Explain RAII in one sentence.");
 
 ## Features
 
-- **`ML::Requests`** — `GET`/`POST`/`PUT`/`DELETE`/`HEAD` plus a modern `get()` returning a rich `Response` (status code + body).
-- **`ML::Response`** — `status`, `body`, and `ok()` (true for any 2xx).
-- **`ML::Chat`** — conversational client for a local Ollama server:
+- **`ML::Requests`**: `GET`/`POST`/`PUT`/`DELETE`/`HEAD` plus a modern `get()` returning a rich `Response` (status code + body).
+- **`ML::Response`**: `status`, `body`, and `ok()` (true for any 2xx).
+- **`ML::Chat`**: conversational client for a local Ollama server:
   - persistent **system prompt** and **conversation memory**
   - adjustable **temperature**
   - **token streaming** via a callback
-- **`ML::File`** — cross-platform file/folder helpers (`std::filesystem`).
-- All HTTP runs **in-process via libcurl** (HTTPS through Schannel on Windows) — no `curl` subprocess, no temp files.
+- **`ML::File`**: cross-platform file/folder helpers (`std::filesystem`).
+- All HTTP runs **in-process via libcurl** (HTTPS through Schannel on Windows), with no `curl` subprocess and no temp files.
 
 ## Requirements
 
@@ -76,4 +76,4 @@ int main() {
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
