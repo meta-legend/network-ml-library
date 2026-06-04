@@ -97,6 +97,21 @@ regardless of provider. The library handles each provider's endpoint, auth
 headers, request shape, and streaming format (NDJSON for Ollama, SSE for
 OpenAI/Anthropic) internally.
 
+### OpenAI-compatible providers
+
+Because `Provider::OpenAI` speaks the standard OpenAI chat format, you can point
+it at any OpenAI-compatible endpoint by passing a custom host. For example,
+[Groq](https://console.groq.com) (free tier, fast):
+
+```cpp
+Chat groq(Provider::OpenAI, std::getenv("GROQ_API_KEY"),
+          "llama-3.1-8b-instant",
+          "https://api.groq.com/openai");
+```
+
+The same approach works for other OpenAI-compatible services (e.g. OpenRouter,
+Together) by swapping the host and model.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
