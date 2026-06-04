@@ -27,7 +27,7 @@ std::cout << chat.ask("Explain RAII in one sentence.");
   - **reasoning-token** support for reasoning models (the model's "thinking"
     streams to a separate callback, available via `lastReasoning()`)
   - **save/load conversation history** to a JSON file (`saveHistory`/`loadHistory`)
-- **`ML::File`**: cross-platform file/folder utilities (`std::filesystem`) — text
+- **`ML::File`**: cross-platform file/folder utilities (`std::filesystem`): text
   and binary read/write, append, copy/move, directory listing, recursive folder
   create/delete, and exists/size/last-modified queries.
 - All HTTP runs **in-process via libcurl** (HTTPS through Schannel on Windows), with no `curl` subprocess and no temp files.
