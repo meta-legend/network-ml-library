@@ -17,8 +17,11 @@ std::cout << chat.ask("Explain RAII in one sentence.");
 
 ## Features
 
-- **`ML::Requests`**: `GET`/`POST`/`PUT`/`DELETE`/`HEAD` plus a modern `get()` returning a rich `Response` (status code + body).
-- **`ML::Response`**: `status`, `body`, and `ok()` (true for any 2xx).
+- **`ML::Requests`**: full HTTP verbs (`get`/`post`/`put`/`patch`/`del`/`head`)
+  returning a rich `Response`, with inline request bodies, multiple request
+  headers, and per-request timeouts. (Legacy string-returning `getReq`/`postReq`/
+  etc. are kept for backwards compatibility.)
+- **`ML::Response`**: `status`, `body`, response `headers` (a map), and `ok()` (true for any 2xx).
 - **`ML::Chat`**: conversational client for **Ollama** (local), **Groq**, **OpenRouter**, **OpenAI**, or **Anthropic**:
   - one API across every provider
   - persistent **system prompt** and **conversation memory**
@@ -70,6 +73,14 @@ int main() {
     Requests req;
     Response r = req.get("https://catfact.ninja/fact");
     std::cout << "status " << r.status << ": " << r.body << "\n";
+
+    // POST with an inline JSON body, headers, and a 10s timeout
+    Response p = req.post("https://httpbin.org/post",
+                          R"({"name":"widget"})",
+                          { "Content-Type: application/json" },
+                          10);
+    std::cout << "post -> " << p.status
+              << " (type " << p.headers["content-type"] << ")\n";
 
     Chat chat(Provider::Ollama, "llama3.2:1b");
     chat.setSystem("You are a terse assistant.");

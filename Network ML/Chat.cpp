@@ -70,23 +70,6 @@ namespace ML {
         }
     }
 
-    // --- Requests::get (rich Response) ---------------------------------------
-
-    Response Requests::get(std::string url) {
-        Response r;
-        CURL* curl = curl_easy_init();
-        if (!curl) return r;
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeToString);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &r.body);
-        if (curl_easy_perform(curl) == CURLE_OK) {
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &r.status);
-        }
-        curl_easy_cleanup(curl);
-        return r;
-    }
-
     // --- streaming plumbing (provider-aware) ---------------------------------
 
     struct StreamCtx {

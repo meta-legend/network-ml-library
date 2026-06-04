@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 #include <functional>
 #include <fstream>
 #include <stdio.h>
@@ -11,6 +12,7 @@ namespace ML {
 	struct Response {
 		long status = 0;
 		std::string body;
+		std::map<std::string, std::string> headers;   // response headers, keys lowercased
 		bool ok() const { return status >= 200 && status < 300; }
 	};
 
@@ -62,8 +64,17 @@ namespace ML {
 		std::string deleteReq(std::string url);
 		std::string deleteReq(std::string url, std::string headers);
 
-		// Newer API: returns a rich Response (status + body) instead of a bare string.
-		Response get(std::string url);
+		// --- modern API: returns a full Response (status + body + headers) ---
+		// `headers` is a list of full header lines, e.g.
+		//   {"Content-Type: application/json", "Authorization: Bearer <token>"}.
+		// `timeoutSeconds` = 0 waits indefinitely; > 0 aborts after that long.
+		// POST/PUT/PATCH take the request body inline (no temp file needed).
+		Response get(std::string url, std::vector<std::string> headers = {}, long timeoutSeconds = 0);
+		Response post(std::string url, std::string body, std::vector<std::string> headers = {}, long timeoutSeconds = 0);
+		Response put(std::string url, std::string body, std::vector<std::string> headers = {}, long timeoutSeconds = 0);
+		Response patch(std::string url, std::string body, std::vector<std::string> headers = {}, long timeoutSeconds = 0);
+		Response del(std::string url, std::vector<std::string> headers = {}, long timeoutSeconds = 0);
+		Response head(std::string url, std::vector<std::string> headers = {}, long timeoutSeconds = 0);
 	};
 
 	// LLM backends supported by Chat.
