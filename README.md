@@ -19,9 +19,10 @@ std::cout << chat.ask("Explain RAII in one sentence.");
 
 - **`ML::Requests`**: `GET`/`POST`/`PUT`/`DELETE`/`HEAD` plus a modern `get()` returning a rich `Response` (status code + body).
 - **`ML::Response`**: `status`, `body`, and `ok()` (true for any 2xx).
-- **`ML::Chat`**: conversational client for a local Ollama server:
+- **`ML::Chat`**: conversational client for **Ollama** (local), **OpenAI**, or **Anthropic**:
+  - one API across all three providers
   - persistent **system prompt** and **conversation memory**
-  - adjustable **temperature**
+  - adjustable **temperature** and **max tokens**
   - **token streaming** via a callback
 - **`ML::File`**: cross-platform file/folder helpers (`std::filesystem`).
 - All HTTP runs **in-process via libcurl** (HTTPS through Schannel on Windows), with no `curl` subprocess and no temp files.
@@ -73,6 +74,28 @@ int main() {
         [](const std::string& token){ std::cout << token << std::flush; });
 }
 ```
+
+## Chat providers
+
+The same `Chat` class targets three backends. Switch by choosing a constructor:
+
+```cpp
+// Ollama (local, no API key)
+Chat ollama("llama3.2:1b");
+
+// OpenAI
+Chat gpt(Provider::OpenAI, std::getenv("OPENAI_API_KEY"), "gpt-4o-mini");
+
+// Anthropic (max_tokens is required)
+Chat claude(Provider::Anthropic, std::getenv("ANTHROPIC_API_KEY"),
+            "claude-3-5-haiku-latest");
+claude.setMaxTokens(1024);
+```
+
+Everything else (`setSystem`, `ask`, `stream`, history, `reset`) works the same
+regardless of provider. The library handles each provider's endpoint, auth
+headers, request shape, and streaming format (NDJSON for Ollama, SSE for
+OpenAI/Anthropic) internally.
 
 ## License
 

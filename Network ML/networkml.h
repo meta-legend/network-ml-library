@@ -45,18 +45,31 @@ namespace ML {
 		Response get(std::string url);
 	};
 
-	// Conversational client for a local Ollama server (http://localhost:11434).
+	// LLM backends supported by Chat.
+	enum class Provider { Ollama, OpenAI, Anthropic };
+
+	// Conversational LLM client. Talks to a local Ollama server by default, or
+	// to OpenAI / Anthropic when constructed with a Provider and an API key.
 	// Holds a running message history so the model remembers context across calls.
 	class Chat {
 	public:
+		// Local Ollama (no API key needed).
 		Chat(std::string model = "llama3.2:1b",
 			std::string host = "http://localhost:11434");
+
+		// Cloud provider (OpenAI / Anthropic) with an API key. Leave host empty
+		// to use the provider's default endpoint.
+		Chat(Provider provider, std::string apiKey, std::string model,
+			std::string host = "");
 
 		// Set a persistent system instruction (model behaviour/persona).
 		void setSystem(std::string instruction);
 
 		// Sampling temperature: 0.0 = focused/deterministic, ~1.0 = creative.
 		void setTemperature(double temperature);
+
+		// Max tokens to generate. Required by Anthropic; optional for others.
+		void setMaxTokens(int maxTokens);
 
 		// Sends the prompt WITH the running history and returns the reply text.
 		// On success, both the prompt and reply are appended to history.
@@ -79,11 +92,15 @@ namespace ML {
 		const std::vector<Message>& history() const;
 
 	private:
+		std::string endpoint() const;
 		std::string buildBody(const std::string& prompt, bool streaming);
 
+		Provider provider;
+		std::string apiKey;
 		std::string model;
 		std::string host;
 		std::vector<Message> messages;
 		double temperature;
+		int maxTokens;
 	};
 }
