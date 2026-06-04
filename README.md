@@ -92,6 +92,9 @@ Chat groq(Provider::Groq, "llama-3.1-8b-instant", std::getenv("GROQ_API_KEY"));
 Chat router(Provider::OpenRouter, "meta-llama/llama-3.1-8b-instruct:free",
             std::getenv("OPENROUTER_API_KEY"));
 
+// DeepSeek (use "deepseek-reasoner" to get reasoning tokens)
+Chat deepseek(Provider::DeepSeek, "deepseek-chat", std::getenv("DEEPSEEK_API_KEY"));
+
 // OpenAI
 Chat gpt(Provider::OpenAI, "gpt-4o-mini", std::getenv("OPENAI_API_KEY"));
 

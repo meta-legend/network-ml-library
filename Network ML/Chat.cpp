@@ -21,7 +21,8 @@ namespace ML {
     // OpenAI and OpenAI-compatible providers (Groq) share the same wire format:
     // same endpoint path, Bearer auth, request body, response shape, and SSE.
     static bool usesOpenAIFormat(Provider p) {
-        return p == Provider::OpenAI || p == Provider::Groq || p == Provider::OpenRouter;
+        return p == Provider::OpenAI || p == Provider::Groq
+            || p == Provider::OpenRouter || p == Provider::DeepSeek;
     }
 
     // Builds the HTTP headers for a provider (Content-Type + auth).
@@ -186,6 +187,7 @@ namespace ML {
             case Provider::Anthropic: this->host = "https://api.anthropic.com"; break;
             case Provider::Groq:      this->host = "https://api.groq.com/openai"; break;
             case Provider::OpenRouter: this->host = "https://openrouter.ai/api"; break;
+            case Provider::DeepSeek:  this->host = "https://api.deepseek.com"; break;
             case Provider::Ollama:
             default:                  this->host = "http://localhost:11434"; break;
             }
@@ -226,7 +228,8 @@ namespace ML {
         switch (provider) {
         case Provider::OpenAI:
         case Provider::Groq:
-        case Provider::OpenRouter: return host + "/v1/chat/completions";
+        case Provider::OpenRouter:
+        case Provider::DeepSeek:  return host + "/v1/chat/completions";
         case Provider::Anthropic: return host + "/v1/messages";
         case Provider::Ollama:
         default:                  return host + "/api/chat";
