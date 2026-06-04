@@ -150,6 +150,11 @@ namespace ML {
         temperature(0.8), maxTokens(1024) {
     }
 
+    // Null-safe overload: a missing env var (null) becomes an empty key.
+    Chat::Chat(Provider provider, const char* apiKey, std::string model, std::string host)
+        : Chat(provider, apiKey ? std::string(apiKey) : std::string(), model, host) {
+    }
+
     Chat::Chat(Provider provider, std::string apiKey, std::string model, std::string host)
         : provider(provider), apiKey(apiKey), model(model), host(host),
         temperature(0.8), maxTokens(1024) {

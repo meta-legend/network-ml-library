@@ -64,6 +64,12 @@ namespace ML {
 		Chat(Provider provider, std::string apiKey, std::string model,
 			std::string host = "");
 
+		// Convenience overload accepting a C-string key (e.g. straight from
+		// std::getenv), which may be null. A null key is treated as empty so a
+		// missing environment variable does not crash the caller.
+		Chat(Provider provider, const char* apiKey, std::string model,
+			std::string host = "");
+
 		// Set a persistent system instruction (model behaviour/persona).
 		void setSystem(std::string instruction);
 
