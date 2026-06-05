@@ -7,6 +7,21 @@
 #include <nlohmann/json.hpp>
 #include "networkml.h"
 
+// Auto-link the Windows system libraries that statically-linked libcurl
+// (Schannel backend) needs, so consumers only have to link networkml.lib.
+// Guarded so it has no effect on non-Windows / non-MSVC builds (CMake handles
+// the platform dependencies there).
+#if defined(_WIN32) && defined(_MSC_VER)
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "wldap32.lib")
+#pragma comment(lib, "normaliz.lib")
+#pragma comment(lib, "advapi32.lib")
+#pragma comment(lib, "secur32.lib")
+#pragma comment(lib, "bcrypt.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#endif
+
 using json = nlohmann::json;
 
 namespace ML {
