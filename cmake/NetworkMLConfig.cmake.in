@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+# Network ML links libcurl publicly, so a consumer needs it too. Pull it in
+# before exposing our targets.
+include(CMakeFindDependencyMacro)
+find_dependency(CURL)
+
+# Bring in the exported NetworkML::networkml target.
+include("${CMAKE_CURRENT_LIST_DIR}/NetworkMLTargets.cmake")
+
+check_required_components(NetworkML)

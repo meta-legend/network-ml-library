@@ -1,40 +1,37 @@
 # ── CMakeLists.txt ───────────────────────────────────────────────────────────
-# A cross-platform description of HOW to build the Network ML library.
-# CMake reads this file and generates the right build files for whatever
-# platform you're on (Visual Studio projects on Windows, Makefiles on Linux,
-# Xcode on macOS). The same file builds everywhere.
+# Cross-platform build for the Network ML library. CMake reads this file and
+# generates the right build for your platform (VS projects on Windows, Makefiles
+# on Linux, etc.). It also installs the library so other CMake projects can use
+# it via find_package(NetworkML).
 
-# 1. Minimum CMake version this file relies on. 3.15+ is a safe modern baseline.
 cmake_minimum_required(VERSION 3.15)
-
-# 2. Name the project and say it uses C++ (CXX). This also defines variables
-#    like ${PROJECT_NAME} that you can reuse below.
 project(NetworkML VERSION 1.6 LANGUAGES CXX)
 
-# 3. Require C++17 for the whole project (std::filesystem, etc.).
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 4. Declare the library target and list the source files that make it up.
-#    STATIC = produce a .lib/.a (the kind you ship). Use SHARED for a .dll/.so.
+# --- the library target -------------------------------------------------------
 add_library(networkml STATIC
     "Network ML/Requests.cpp"
     "Network ML/File.cpp"
     "Network ML/Chat.cpp"
 )
 
-# 5. Include directories.
-#    PUBLIC = applies to this library AND anything that links it (consumers
-#             need to find networkml.h, so it's PUBLIC).
-target_include_directories(networkml
-    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Network ML"
+# An alias so it can be linked as NetworkML::networkml whether it is used via
+# add_subdirectory() or installed and found with find_package().
+add_library(NetworkML::networkml ALIAS networkml)
+
+# The header location differs between building here and being installed
+# elsewhere, so describe both with generator expressions.
+target_include_directories(networkml PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Network ML>
+    $<INSTALL_INTERFACE:include>
 )
 
-# 6. Dependencies, both provided by vcpkg (see vcpkg.json).
-#    - libcurl is PUBLIC: consumers link a static lib that references curl
-#      symbols, so the dependency must propagate to them.
-#    - nlohmann_json is PRIVATE: it's a header-only implementation detail used
-#      only inside Chat.cpp; consumers never see it.
+# --- dependencies (provided by vcpkg, see vcpkg.json) -------------------------
+#  - libcurl is PUBLIC: a consumer of this static lib must link it too.
+#  - nlohmann_json is PRIVATE: header-only and compiled in, so consumers never
+#    see it.
 find_package(CURL REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 target_link_libraries(networkml
@@ -42,15 +39,54 @@ target_link_libraries(networkml
     PRIVATE nlohmann_json::nlohmann_json
 )
 
-# ── How to build with this file ──────────────────────────────────────────────
+# --- install + export (makes find_package(NetworkML) work) --------------------
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+# 1. Install the compiled library and record it in an export set.
+install(TARGETS networkml
+    EXPORT NetworkMLTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# 2. Install the public header.
+install(FILES "Network ML/networkml.h" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# 3. Generate and install NetworkMLTargets.cmake (the importable targets).
+install(EXPORT NetworkMLTargets
+    FILE NetworkMLTargets.cmake
+    NAMESPACE NetworkML::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkML
+)
+
+# 4. Generate the package config + version files from the template.
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/NetworkMLConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/NetworkMLConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkML
+)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/NetworkMLConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/NetworkMLConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/NetworkMLConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkML
+)
+
+# ── Building, installing, and consuming ──────────────────────────────────────
 #
-#   Configure (generate build files), pointing at vcpkg for libcurl:
-#     cmake -B build -S . ^
-#       -DCMAKE_TOOLCHAIN_FILE=D:/vcpkg/scripts/buildsystems/vcpkg.cmake ^
-#       -DVCPKG_TARGET_TRIPLET=x64-windows-static
-#
-#   Compile:
+#   Build:
+#     cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 #     cmake --build build --config Release
 #
-# On Linux/macOS you'd drop the vcpkg line (libcurl comes from the system) and
-# just run the same two commands — that's the whole point of CMake.
+#   Install (to a prefix of your choice):
+#     cmake --install build --prefix /path/to/install
+#
+#   Then, from another CMake project:
+#     find_package(NetworkML REQUIRED)
+#     target_link_libraries(myapp PRIVATE NetworkML::networkml)
