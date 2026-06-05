@@ -19,8 +19,11 @@ std::cout << chat.ask("Explain RAII in one sentence.");
 
 - **`ML::Requests`**: full HTTP verbs (`get`/`post`/`put`/`patch`/`del`/`head`)
   returning a rich `Response`, with inline request bodies, multiple request
-  headers, and per-request timeouts. (Legacy string-returning `getReq`/`postReq`/
-  etc. are kept for backwards compatibility.)
+  headers, and per-request timeouts. Also file `download` (streamed to disk with
+  optional progress), multipart `upload`, and opt-in auto-`retries` with backoff.
+  (Legacy string-returning `getReq`/`postReq`/etc. are kept for compatibility.)
+- **`ML::Auth`** / **`ML::Url`**: helpers for auth headers (`bearer`/`basic`/
+  `apiKey`) and percent-encoded query URLs (`Url::build`).
 - **`ML::Response`**: `status`, `body`, response `headers` (a map), and `ok()` (true for any 2xx).
 - **`ML::Chat`**: conversational client for **Ollama** (local), **Groq**, **OpenRouter**, **OpenAI**, or **Anthropic**:
   - one API across every provider

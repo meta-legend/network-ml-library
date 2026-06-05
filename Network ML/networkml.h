@@ -52,6 +52,28 @@ namespace ML {
 		long long lastModified(std::string name);                  // unix seconds, -1 if missing
 	};
 
+	// One part of a multipart/form-data upload: a text field, or a file (set
+	// isFile = true and put the file path in `content`).
+	struct FormPart {
+		std::string name;
+		std::string content;     // text value, or file path when isFile is true
+		bool isFile = false;
+	};
+
+	// Helpers that build Authorization / auth header lines.
+	namespace Auth {
+		std::string bearer(const std::string& token);                 // "Authorization: Bearer <token>"
+		std::string basic(const std::string& user, const std::string& password);  // base64-encoded
+		std::string apiKey(const std::string& headerName, const std::string& key);
+	}
+
+	// Helpers that build URLs with properly percent-encoded query strings.
+	namespace Url {
+		std::string encode(const std::string& value);                 // percent-encode one value
+		std::string build(const std::string& base,
+			const std::map<std::string, std::string>& params);
+	}
+
 	class Requests {
 	public:
 		std::string pingDomain(std::string domain);
@@ -75,6 +97,25 @@ namespace ML {
 		Response patch(std::string url, std::string body, std::vector<std::string> headers = {}, long timeoutSeconds = 0);
 		Response del(std::string url, std::vector<std::string> headers = {}, long timeoutSeconds = 0);
 		Response head(std::string url, std::vector<std::string> headers = {}, long timeoutSeconds = 0);
+
+		// Streams a response body straight to disk (memory-light for big files).
+		// onProgress, if set, receives (bytesNow, bytesTotal). Returns true on 2xx.
+		bool download(std::string url, std::string filePath,
+			std::function<void(long, long)> onProgress = {});
+
+		// multipart/form-data upload (file uploads, etc.). Returns a full Response.
+		Response upload(std::string url, std::vector<FormPart> parts,
+			std::vector<std::string> headers = {}, long timeoutSeconds = 0);
+
+		// Auto-retry for the verb methods above. Retries on 429 and 5xx, honoring
+		// the server's Retry-After header when present, otherwise exponential
+		// backoff (baseMs, 2*baseMs, 4*baseMs, ...). Off by default.
+		void setRetries(int maxRetries);            // default 0 (no retries)
+		void setRetryBackoff(int baseMs);           // default 1000 ms
+
+	private:
+		int maxRetries = 0;
+		int retryBackoffMs = 1000;
 	};
 
 	// LLM backends supported by Chat.
