@@ -1,6 +1,9 @@
 # Network ML
 
-A small, easy-to-use C++ library for **REST API requests** and **local LLM chat** (via [Ollama](https://ollama.com)), built on **libcurl**.
+A small, easy-to-use C++ library for **REST API requests** and **LLM chat**, built
+on **libcurl**. The chat client works with a **local** model via
+[Ollama](https://ollama.com) *or* **cloud** providers (Groq, OpenRouter, DeepSeek,
+OpenAI, Anthropic) behind one API.
 
 It aims to make two things one-liners from C++:
 
@@ -10,10 +13,19 @@ ML::Requests req;
 ML::Response r = req.get("https://api.example.com/data");
 if (r.ok()) std::cout << r.status << "\n" << r.body;
 
-// Talk to a local LLM
+// Talk to an LLM (local Ollama here; swap the Provider for a cloud model)
 ML::Chat chat(ML::Provider::Ollama, "llama3.2:1b");
 std::cout << chat.ask("Explain RAII in one sentence.");
 ```
+
+## Documentation
+
+Full documentation lives in the **[project wiki](https://github.com/meta-legend/Network-ML-Library/wiki)**:
+
+- [Getting Started](https://github.com/meta-legend/Network-ML-Library/wiki/Getting-Started)
+- [Requests](https://github.com/meta-legend/Network-ML-Library/wiki/Requests): the HTTP client
+- [Chat](https://github.com/meta-legend/Network-ML-Library/wiki/Chat): the LLM client
+- [File](https://github.com/meta-legend/Network-ML-Library/wiki/File): file utilities
 
 ## Features
 
