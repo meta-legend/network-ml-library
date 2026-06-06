@@ -1,5 +1,7 @@
 # Network ML
 
+[![CI](https://github.com/meta-legend/network-ml-library/actions/workflows/ci.yml/badge.svg)](https://github.com/meta-legend/network-ml-library/actions/workflows/ci.yml)
+
 A small, easy-to-use C++ library for REST API requests, LLM chat, and file
 management, built on libcurl. The chat client works with a local model via
 [Ollama](https://ollama.com) or cloud providers (Groq, OpenRouter, DeepSeek,
