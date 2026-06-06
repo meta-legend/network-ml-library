@@ -1,8 +1,8 @@
 # Network ML
 
-A small, easy-to-use C++ library for **REST API requests** and **LLM chat**, built
-on **libcurl**. The chat client works with a **local** model via
-[Ollama](https://ollama.com) *or* **cloud** providers (Groq, OpenRouter, DeepSeek,
+A small, easy-to-use C++ library for REST API requests and LLM chat, built on
+libcurl. The chat client works with a local model via
+[Ollama](https://ollama.com) or cloud providers (Groq, OpenRouter, DeepSeek,
 OpenAI, Anthropic) behind one API.
 
 It aims to make two things one-liners from C++:
@@ -21,7 +21,7 @@ std::cout << chat.ask("Explain RAII in one sentence.");
 ## Documentation
 
 Full documentation, including build instructions and usage examples, lives in the
-**[project wiki](https://github.com/meta-legend/Network-ML-Library/wiki)**:
+[project wiki](https://github.com/meta-legend/Network-ML-Library/wiki):
 
 - [Getting Started](https://github.com/meta-legend/Network-ML-Library/wiki/Getting-Started): requirements, building, prebuilt binaries
 - [Requests](https://github.com/meta-legend/Network-ML-Library/wiki/Requests): the HTTP client
@@ -30,26 +30,28 @@ Full documentation, including build instructions and usage examples, lives in th
 
 ## Features
 
-- **`ML::Requests`**: full HTTP verbs (`get`/`post`/`put`/`patch`/`del`/`head`)
+- `ML::Requests`: full HTTP verbs (`get`/`post`/`put`/`patch`/`del`/`head`)
   returning a rich `Response`, with inline request bodies, multiple request
   headers, and per-request timeouts. Also file `download` (streamed to disk with
   optional progress), multipart `upload`, and opt-in auto-`retries` with backoff.
   (Legacy string-returning `getReq`/`postReq`/etc. are kept for compatibility.)
-- **`ML::Auth`** / **`ML::Url`**: helpers for auth headers (`bearer`/`basic`/
-  `apiKey`) and percent-encoded query URLs (`Url::build`).
-- **`ML::Response`**: `status`, `body`, response `headers` (a map), and `ok()` (true for any 2xx).
-- **`ML::Chat`**: conversational client for **Ollama** (local), **Groq**, **OpenRouter**, **DeepSeek**, **OpenAI**, or **Anthropic**:
+- `ML::Auth` / `ML::Url`: helpers for auth headers (`bearer`/`basic`/`apiKey`) and
+  percent-encoded query URLs (`Url::build`).
+- `ML::Response`: `status`, `body`, response `headers` (a map), and `ok()` (true for any 2xx).
+- `ML::Chat`: conversational client for Ollama (local), Groq, OpenRouter, DeepSeek,
+  OpenAI, or Anthropic:
   - one API across every provider
-  - persistent **system prompt** and **conversation memory**
-  - adjustable **temperature** and **max tokens**
-  - **token streaming** via a callback
-  - **reasoning-token** support for reasoning models (the model's "thinking"
-    streams to a separate callback, available via `lastReasoning()`)
-  - **save/load conversation history** to a JSON file (`saveHistory`/`loadHistory`)
-- **`ML::File`**: cross-platform file/folder utilities (`std::filesystem`): text
-  and binary read/write, append, copy/move, directory listing, recursive folder
+  - persistent system prompt and conversation memory
+  - adjustable temperature and max tokens
+  - token streaming via a callback
+  - reasoning-token support for reasoning models (the model's "thinking" streams
+    to a separate callback, available via `lastReasoning()`)
+  - save/load conversation history to a JSON file (`saveHistory`/`loadHistory`)
+- `ML::File`: cross-platform file/folder utilities (`std::filesystem`): text and
+  binary read/write, append, copy/move, directory listing, recursive folder
   create/delete, and exists/size/last-modified queries.
-- All HTTP runs **in-process via libcurl** (HTTPS through Schannel on Windows), with no `curl` subprocess and no temp files.
+- All HTTP runs in-process via libcurl (HTTPS through Schannel on Windows), with
+  no `curl` subprocess and no temp files.
 
 ## License
 
