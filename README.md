@@ -1,6 +1,9 @@
 # Network ML
 
 [![CI](https://github.com/meta-legend/network-ml-library/actions/workflows/ci.yml/badge.svg)](https://github.com/meta-legend/network-ml-library/actions/workflows/ci.yml)
+[![Release v2.0.0](https://img.shields.io/badge/Release-v2.0.0-brightgreen)](https://github.com/meta-legend/network-ml-library/releases/tag/v2.0.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Wiki](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/meta-legend/network-ml-library/wiki)
 
 A small, easy-to-use C++ library for REST API requests, LLM chat, and file
 management, built on libcurl. The chat client works with a local model via
