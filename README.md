@@ -1,7 +1,7 @@
 # Network ML
 
-A small, easy-to-use C++ library for REST API requests and LLM chat, built on
-libcurl. The chat client works with a local model via
+A small, easy-to-use C++ library for REST API requests, LLM chat, and file
+management, built on libcurl. The chat client works with a local model via
 [Ollama](https://ollama.com) or cloud providers (Groq, OpenRouter, DeepSeek,
 OpenAI, Anthropic) behind one API.
 
