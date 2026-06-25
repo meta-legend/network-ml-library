@@ -7,10 +7,10 @@
 #include <nlohmann/json.hpp>
 #include "networkml.h"
 
-// Auto-link the Windows system libraries that statically-linked libcurl
-// (Schannel backend) needs, so consumers only have to link networkml.lib.
-// Guarded so it has no effect on non-Windows / non-MSVC builds (CMake handles
-// the platform dependencies there).
+/* Link the Windows system libraries that libcurl
+(Schannel backend) needs, so consumers only have to link networkml.lib.
+Guarded so it has no effect on non-MSVC builds */
+
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "crypt32.lib")
@@ -26,7 +26,7 @@ using json = nlohmann::json;
 
 namespace ML {
 
-    // --- libcurl transport (file-local) --------------------------------------
+    // libcurl transport (file-local)
 
     static size_t writeToString(char* ptr, size_t size, size_t nmemb, void* userdata) {
         size_t n = size * nmemb;
@@ -35,13 +35,13 @@ namespace ML {
     }
 
     // OpenAI and OpenAI-compatible providers (Groq) share the same wire format:
-    // same endpoint path, Bearer auth, request body, response shape, and SSE.
+    // same endpoint path, Bearer auth, request body, response shape, and SSE
     static bool usesOpenAIFormat(Provider p) {
         return p == Provider::OpenAI || p == Provider::Groq
             || p == Provider::OpenRouter || p == Provider::DeepSeek;
     }
 
-    // Builds the HTTP headers for a provider (Content-Type + auth).
+    // Builds the HTTP headers for a provider (Content-Type + auth)
     static curl_slist* providerHeaders(Provider p, const std::string& apiKey) {
         curl_slist* h = curl_slist_append(nullptr, "Content-Type: application/json");
         if (usesOpenAIFormat(p)) {
@@ -56,8 +56,7 @@ namespace ML {
         return h;
     }
 
-    // Extracts the assistant answer (returned) and the reasoning/"thinking"
-    // (via reasoningOut) from a non-streaming response body.
+    // Extracts the assistant answer and the reasoning/"thinking" (non streaming)
     static std::string parseReply(Provider p, const std::string& bodyText,
         std::string& reasoningOut) {
         reasoningOut.clear();
@@ -85,8 +84,7 @@ namespace ML {
         }
     }
 
-    // --- streaming plumbing (provider-aware) ---------------------------------
-
+    // streaming plumbing (provider-aware) 
     struct StreamCtx {
         Provider provider;
         std::function<void(const std::string&)>* onToken;
@@ -119,7 +117,7 @@ namespace ML {
                     auto& delta = choices[0]["delta"];
                     if (delta.contains("content") && !delta["content"].is_null())
                         tok = delta["content"].get<std::string>();
-                    // gpt-oss/OpenRouter use "reasoning"; DeepSeek "reasoning_content"
+					// different labels for reasoning in different models / versions
                     if (delta.contains("reasoning") && !delta["reasoning"].is_null())
                         rtok = delta["reasoning"].get<std::string>();
                     else if (delta.contains("reasoning_content") && !delta["reasoning_content"].is_null())
@@ -175,7 +173,7 @@ namespace ML {
         return n;
     }
 
-    // --- Chat ----------------------------------------------------------------
+    // chat
 
     Chat::Chat(Provider provider, std::string model, std::string apiKey, std::string host)
         : provider(provider), apiKey(apiKey), model(model), host(host),
@@ -193,7 +191,7 @@ namespace ML {
         }
     }
 
-    // Null-safe overload: a missing env var (null) becomes an empty key.
+    // Null-safe overload, a missing env var (null) becomes an empty key
     Chat::Chat(Provider provider, std::string model, const char* apiKey, std::string host)
         : Chat(provider, model, apiKey ? std::string(apiKey) : std::string(), host) {
     }
@@ -207,6 +205,7 @@ namespace ML {
         }
     }
 
+	// setters for parameters that may be provider-specific 
     void Chat::setTemperature(double t) { temperature = t; }
     void Chat::setMaxTokens(int m) { maxTokens = m; }
 
@@ -221,6 +220,7 @@ namespace ML {
         }
     }
 
+    // getter for the conversation history
     const std::vector<Message>& Chat::history() const { return messages; }
 
     bool Chat::saveHistory(const std::string& path) const {
@@ -234,6 +234,7 @@ namespace ML {
         return true;
     }
 
+    // Loads a conversation from a file, replacing the current history
     bool Chat::loadHistory(const std::string& path) {
         std::ifstream in(path, std::ios::binary);
         if (!in.is_open()) return false;
@@ -250,7 +251,7 @@ namespace ML {
             return true;
         }
         catch (const json::exception&) {
-            return false;   // malformed file; leave existing history untouched
+            return false;   // leave existing history untouched
         }
     }
 
@@ -272,8 +273,7 @@ namespace ML {
         body["stream"] = streaming;
 
         if (provider == Provider::Anthropic) {
-            // Anthropic: system is a top-level field; messages exclude it and
-            // max_tokens is required.
+            // Anthropic: system is a top-level field and messages exclude it and max_tokens is required.
             body["max_tokens"] = maxTokens;
             body["temperature"] = temperature;
 
@@ -288,7 +288,7 @@ namespace ML {
             body["messages"] = msgs;
         }
         else {
-            // Ollama + OpenAI: system is just another message in the array.
+            // Ollama and OpenAI: system is another message in the array
             json msgs = json::array();
             for (const auto& m : messages) {
                 msgs.push_back({ {"role", m.role}, {"content", m.content} });
@@ -380,7 +380,7 @@ namespace ML {
         curl_slist_free_all(headers);
         curl_easy_cleanup(curl);
 
-        // Only record the exchange if the request actually succeeded (2xx).
+        // Only record the exchange if the request actually succeeded (2xx)
         if (status >= 200 && status < 300) {
             reasoningText = ctx.reasoning;
             messages.push_back(Message{ "user", prompt });

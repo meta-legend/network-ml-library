@@ -11,7 +11,7 @@
 
 namespace ML {
 
-    // --- create / write ------------------------------------------------------
+    // create and write
 
     void File::createFolder(std::string name) {
         std::error_code ec;
@@ -55,7 +55,7 @@ namespace ML {
             static_cast<std::streamsize>(data.size()));
     }
 
-    // --- read ----------------------------------------------------------------
+    // read
 
     std::string File::readFile(std::string name) {
         std::ifstream inFile(name);
@@ -78,7 +78,7 @@ namespace ML {
             return "";
         }
         std::ostringstream ss;
-        ss << inFile.rdbuf();   // exact bytes, no whitespace mangling
+        ss << inFile.rdbuf();   // exact bytes (no whitespace mangling)
         return ss.str();
     }
 
@@ -93,7 +93,7 @@ namespace ML {
             std::istreambuf_iterator<char>());
     }
 
-    // --- delete / copy / move ------------------------------------------------
+    // delete, copy, and move
 
     void File::deleteFile(std::string name) {
         std::error_code ec;
@@ -122,7 +122,7 @@ namespace ML {
         if (ec) std::cerr << "Error moving file: " << ec.message() << '\n';
     }
 
-    // --- listing & queries ---------------------------------------------------
+	// listing, queries, and metadata
 
     std::vector<std::string> File::listFiles(std::string folder) {
         std::vector<std::string> entries;
@@ -164,7 +164,7 @@ namespace ML {
         std::error_code ec;
         auto ftime = std::filesystem::last_write_time(name, ec);
         if (ec) return -1;
-        // Convert the filesystem clock to system_clock (C++17 has no clock_cast).
+        // Convert the filesystem clock to system_clock 
         auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
             ftime - std::filesystem::file_time_type::clock::now()
                   + std::chrono::system_clock::now());

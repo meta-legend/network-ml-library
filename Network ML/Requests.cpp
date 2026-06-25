@@ -10,8 +10,10 @@
 #include <curl/curl.h>
 #include "networkml.h"
 
-// See Chat.cpp: auto-link libcurl's Windows system-library dependencies so
-// consumers only have to link networkml.lib (no effect off Windows/MSVC).
+/* Link the Windows system libraries that libcurl
+(Schannel backend) needs, so consumers only have to link networkml.lib.
+Guarded so it has no effect on non-MSVC builds */
+
 #if defined(_WIN32) && defined(_MSC_VER)
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "crypt32.lib")
@@ -25,17 +27,16 @@
 
 namespace ML {
 
-    // --- file-local helpers ---------------------------------------------------
+    // helpers
 
-    // libcurl write callback: append received bytes to a std::string.
+    // libcurl write callback, append received bytes to a std::string
     static size_t reqWrite(char* ptr, size_t size, size_t nmemb, void* userdata) {
         size_t n = size * nmemb;
         static_cast<std::string*>(userdata)->append(ptr, n);
         return n;
     }
 
-    // Perform a configured easy handle and return the response body (or an
-    // error string on transport failure). Does NOT clean up the handle.
+    // Perform a configured easy handle and return the response body, Does NOT clean up the handle.
     static std::string perform(CURL* curl) {
         std::string body;
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, reqWrite);
@@ -47,8 +48,7 @@ namespace ML {
         return body;
     }
 
-    // Read a whole file into a string (used by the file-based POST/PUT methods,
-    // preserving the original "pass a payload file name" behaviour).
+    // Read a whole file into a string
     static std::string readFileContents(const std::string& path) {
         std::ifstream f(path, std::ios::binary);
         std::ostringstream ss;
@@ -56,7 +56,7 @@ namespace ML {
         return ss.str();
     }
 
-    // Captures each response header line into a map with lowercased keys.
+    // Captures each response header line into a map with lowercased keys
     static size_t headerCb(char* buffer, size_t size, size_t nitems, void* userdata) {
         size_t n = size * nitems;
         auto* headers = static_cast<std::map<std::string, std::string>*>(userdata);
@@ -110,8 +110,7 @@ namespace ML {
         return r;
     }
 
-    // Wraps doSingleRequest with auto-retry on 429 / 5xx. Honors the server's
-    // Retry-After header when present, else exponential backoff.
+    // Wraps doSingleRequest with auto-retry on 429 / 5xx
     static Response performRequest(const std::string& method, const std::string& url,
         const std::string& body, const std::vector<std::string>& headers,
         long timeoutSeconds, bool noBody, int maxRetries, int backoffMs) {
@@ -135,7 +134,7 @@ namespace ML {
     void Requests::setRetries(int retries) { maxRetries = retries; }
     void Requests::setRetryBackoff(int baseMs) { retryBackoffMs = baseMs; }
 
-    // --- modern verb methods (full Response) ---------------------------------
+    // all verb methods
 
     Response Requests::get(std::string url, std::vector<std::string> headers, long timeoutSeconds) {
         return performRequest("GET", url, "", headers, timeoutSeconds, false, maxRetries, retryBackoffMs);
@@ -156,7 +155,7 @@ namespace ML {
         return performRequest("HEAD", url, "", headers, timeoutSeconds, true, maxRetries, retryBackoffMs);
     }
 
-    // --- download (stream to file) -------------------------------------------
+    // streaming
 
     static size_t writeToFile(char* ptr, size_t size, size_t nmemb, void* userdata) {
         std::ofstream* out = static_cast<std::ofstream*>(userdata);
@@ -170,6 +169,8 @@ namespace ML {
         if (cb && *cb) (*cb)(static_cast<long>(dlnow), static_cast<long>(dltotal));
         return 0;
     }
+
+    // download and upload (upload needs multipart body)
 
     bool Requests::download(std::string url, std::string filePath,
         std::function<void(long, long)> onProgress) {
@@ -196,8 +197,6 @@ namespace ML {
         out.close();
         return res == CURLE_OK && status >= 200 && status < 300;
     }
-
-    // --- multipart upload ----------------------------------------------------
 
     Response Requests::upload(std::string url, std::vector<FormPart> parts,
         std::vector<std::string> headers, long timeoutSeconds) {
@@ -235,7 +234,7 @@ namespace ML {
         return r;
     }
 
-    // --- auth & URL helpers --------------------------------------------------
+	// auth and URL utilities
 
     namespace Auth {
         static std::string base64(const std::string& in) {
@@ -292,7 +291,7 @@ namespace ML {
         }
     }
 
-    // --- legacy string-returning methods (all libcurl-based) -----------------
+    // legacy string-returning methods
 
     std::string Requests::pingDomain(std::string domain) {
         CURL* curl = curl_easy_init();
@@ -330,7 +329,6 @@ namespace ML {
     }
 
     // Second argument is a file name whose contents become the POST body
-    // (kept for backwards compatibility with the original API).
     std::string Requests::postReq(std::string url, std::string payloadFileName, std::string headers) {
         CURL* curl = curl_easy_init();
         if (!curl) return "[ERROR] curl init failed";
@@ -371,7 +369,7 @@ namespace ML {
         return body;
     }
 
-    // Third argument is a file name whose contents become the PUT body.
+    // Third argument is a file name whose contents become the PUT body
     std::string Requests::putReq(std::string url, std::string headers, std::string payloadFileName) {
         CURL* curl = curl_easy_init();
         if (!curl) return "[ERROR] curl init failed";
