@@ -24,8 +24,8 @@ add_library(NetworkML::networkml ALIAS networkml)
 # The header location differs between building here and being installed
 # elsewhere, so describe both with generator expressions.
 target_include_directories(networkml PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Network ML>
-    $<INSTALL_INTERFACE:include>
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Network ML>"
+    "$<INSTALL_INTERFACE:include>"
 )
 
 # --- dependencies (provided by vcpkg, see vcpkg.json) -------------------------
