@@ -34,3 +34,6 @@ vcpkg_installed/
 *.tmp
 domainOutput.txt
 output.txt
+
+# Personal CMake preset overrides
+CMakeUserPresets.json
