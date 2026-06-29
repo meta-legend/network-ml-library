@@ -34,13 +34,14 @@ jobs:
 
       - name: Configure (Windows, vcpkg)
         if: runner.os == 'Windows'
-        shell: bash
         run: |
-          # The runner's pre-installed vcpkg may not contain the manifest's
-          # builtin-baseline commit, so fetch it before configuring.
-          BASE=$(jq -r '."builtin-baseline"' vcpkg.json)
-          git -C "$VCPKG_INSTALLATION_ROOT" fetch --depth 1 origin "$BASE"
-          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          # Sync the runner's vcpkg to the manifest's builtin-baseline so its
+          # port/version database matches, then configure.
+          $base = (Get-Content vcpkg.json | ConvertFrom-Json).'builtin-baseline'
+          git -C "$env:VCPKG_INSTALLATION_ROOT" fetch --depth 1 origin $base
+          git -C "$env:VCPKG_INSTALLATION_ROOT" checkout -f $base
+          & "$env:VCPKG_INSTALLATION_ROOT\bootstrap-vcpkg.bat" -disableMetrics
+          cmake -B build -S . "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       # --- build + verify install/export ---
       - name: Build
