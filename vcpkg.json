@@ -6,5 +6,6 @@
   "dependencies": [
     "curl",
     "nlohmann-json"
-  ]
+  ],
+  "builtin-baseline": "40892d326660dcdff7bd9afb401461472ab61ffc"
 }
