@@ -1,16 +1,12 @@
-# ── CMakeLists.txt ───────────────────────────────────────────────────────────
-# Cross-platform build for the Network ML library. CMake reads this file and
-# generates the right build for your platform (VS projects on Windows, Makefiles
-# on Linux, etc.). It also installs the library so other CMake projects can use
-# it via find_package(NetworkML).
-
+# Cross-platform build for the Network ML library. 
+# It also installs the library so other CMake projects can use it via find_package(NetworkML).
 cmake_minimum_required(VERSION 3.15)
 project(NetworkML VERSION 2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --- the library target -------------------------------------------------------
+# library target
 add_library(networkml STATIC
     "Network ML/Requests.cpp"
     "Network ML/File.cpp"
@@ -28,9 +24,9 @@ target_include_directories(networkml PUBLIC
     "$<INSTALL_INTERFACE:include>"
 )
 
-# --- dependencies (provided by vcpkg, see vcpkg.json) -------------------------
-#  - libcurl is PUBLIC: a consumer of this static lib must link it too.
-#  - nlohmann_json is PRIVATE: header-only and compiled in, so consumers never
+# dependencies
+#  libcurl is PUBLIC: a consumer of this lib must link it too.
+#  nlohmann_json is PRIVATE: header-only and compiled in, so consumers never
 #    see it.
 find_package(CURL REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -39,7 +35,7 @@ target_link_libraries(networkml
     PRIVATE nlohmann_json::nlohmann_json
 )
 
-# --- install + export (makes find_package(NetworkML) work) --------------------
+# install and export
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
@@ -61,7 +57,7 @@ install(EXPORT NetworkMLTargets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkML
 )
 
-# 4. Generate the package config + version files from the template.
+# 4. Generate the package config and version files from the template.
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/NetworkMLConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/NetworkMLConfig.cmake"
@@ -78,7 +74,7 @@ install(FILES
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkML
 )
 
-# ── Building, installing, and consuming ──────────────────────────────────────
+# Building, installing, and consuming instructions for this library are as follows:
 #
 #   Build:
 #     cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
