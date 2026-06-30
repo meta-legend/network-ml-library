@@ -1,9 +1,12 @@
 @PACKAGE_INIT@
 
 # Network ML links libcurl publicly, so a consumer needs it too. Pull it in
-# before exposing our targets.
+# before exposing our targets. nlohmann_json is private but, because we ship
+# a STATIC library, CMake records it on the exported target as a LINK_ONLY
+# interface dep that the consumer must satisfy at link time.
 include(CMakeFindDependencyMacro)
 find_dependency(CURL)
+find_dependency(nlohmann_json CONFIG)
 
 # Bring in the exported NetworkML::networkml target.
 include("${CMAKE_CURRENT_LIST_DIR}/NetworkMLTargets.cmake")
