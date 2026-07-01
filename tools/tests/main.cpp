@@ -50,7 +50,7 @@ static std::string env_str(const char* name) {
     return v ? std::string(v) : std::string{};
 }
 
-// --- offline: Auth + Url -----------------------------------------------------
+// offline: auth and url helpers
 static void test_auth_url() {
     section("Auth + Url");
 
@@ -76,7 +76,7 @@ static void test_auth_url() {
     CHECK(u.find("n=1") != std::string::npos);
 }
 
-// --- offline: File -----------------------------------------------------------
+// offline: file system operations (create, read, write, copy, move, delete)
 static void test_file() {
     section("File");
     File f;
@@ -137,7 +137,7 @@ static void test_file() {
     CHECK(!f.exists(root));
 }
 
-// --- offline: Chat state (no network) ----------------------------------------
+// offline chat state: history, reset, save/load
 static void test_chat_state() {
     section("Chat state (offline)");
 
@@ -173,7 +173,7 @@ static void test_chat_state() {
     f.deleteFolder(root);
 }
 
-// --- offline: object construction (links every class) ------------------------
+// offline object construction: Requests, Response, FormPart, Message, Chat
 static void test_construction() {
     section("Object construction");
     Requests r;
@@ -202,7 +202,7 @@ static void test_construction() {
     (void)a; (void)b; (void)c; (void)d; (void)e; (void)g;
 }
 
-// --- live: HTTP via postman-echo.com -----------------------------------------
+// online: live HTTP tests against postman-echo.com (get, head, post, put, patch, delete, download, upload)
 static void test_live_http() {
     section("Live HTTP (postman-echo.com)");
     Requests r;
@@ -282,7 +282,7 @@ static void test_live_http() {
     f.deleteFile("smoke_upload.txt");
 }
 
-// --- live: Chat against a real provider --------------------------------------
+// online/offline: chat against a provider
 static Provider parse_provider(const std::string& s, bool& ok) {
     ok = true;
     if (s == "ollama")     return Provider::Ollama;
