@@ -74,6 +74,14 @@ install(FILES
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NetworkML
 )
 
+# Optional in-tree smoke tests (built only when explicitly requested, so downstream
+# consumers via add_subdirectory / FetchContent never build them by default).
+option(NETWORKML_BUILD_TESTS "Build the Network ML smoke tests (tools/tests)" OFF)
+if(NETWORKML_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tools/tests)
+endif()
+
 # Building, installing, and consuming instructions for this library are as follows:
 #
 #   Build:

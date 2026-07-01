@@ -30,7 +30,7 @@ jobs:
       # --- configure ---
       - name: Configure (Linux/macOS, system packages)
         if: runner.os != 'Windows'
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DNETWORKML_BUILD_TESTS=ON
 
       # Cache vcpkg's built-package archives so curl/nlohmann-json are not
       # rebuilt from source on every run. vcpkg's old x-gha backend was
@@ -55,11 +55,19 @@ jobs:
           git -C "$env:VCPKG_INSTALLATION_ROOT" fetch --depth 1 origin $base
           git -C "$env:VCPKG_INSTALLATION_ROOT" checkout -f $base
           & "$env:VCPKG_INSTALLATION_ROOT\bootstrap-vcpkg.bat" -disableMetrics
-          cmake -B build -S . "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake -B build -S . "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DNETWORKML_BUILD_TESTS=ON
 
-      # --- build + verify install/export ---
+      # --- build + test + verify install/export ---
       - name: Build
         run: cmake --build build --config Release
+
+      # Smoke tests. Live HTTP is enabled on all runners; live Chat is skipped
+      # unless NETWORKML_CHAT_PROVIDER + NETWORKML_CHAT_MODEL are set (opt-in).
+      - name: Test
+        working-directory: build
+        env:
+          NETWORKML_LIVE: "1"
+        run: ctest -C Release --output-on-failure
 
       - name: Install (verify export)
         run: cmake --install build --config Release --prefix "${{ runner.temp }}/nml-install"
